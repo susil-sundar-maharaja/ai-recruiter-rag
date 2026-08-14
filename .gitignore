@@ -5,3 +5,6 @@ backend/data/knowledge_base/
 backend/data/uploads/
 frontend/node_modules/
 frontend/.next/
+backend/data/sample_resume.pdf
+backend/data/interview.db
+.vercel

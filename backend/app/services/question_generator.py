@@ -56,7 +56,7 @@ Return ONLY the question text. No preamble, no "Here's a question:", no numberin
 """
 
     response = client.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash",
         contents=prompt
     )
     question_text = response.text.strip()
