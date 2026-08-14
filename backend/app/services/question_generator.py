@@ -1,13 +1,3 @@
-"""
-Question Generation Module
-----------------------------
-Takes retrieved knowledge-base chunks + resume info + role, and asks Gemini to write
-ONE real interview question grounded in that context — not generic, not templated.
-
-Also tracks which source chunks each question was grounded in, for traceability
-(the assignment explicitly asks for this: Context -> Question -> Answer -> Storage).
-"""
-
 import os
 from google import genai
 from dotenv import load_dotenv
@@ -17,12 +7,6 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def generate_question(chunks: list[dict], resume_info: dict, role: str, asked_questions: list[str] = None) -> dict:
-    """
-    chunks: retrieved chunks from retrieval.retrieve_relevant_chunks()
-    resume_info: structured dict from resume_parser.extract_resume_info()
-    role: the selected role, e.g. "AI Engineer"
-    asked_questions: list of question strings already asked this session (avoids repeats)
-    """
     asked_questions = asked_questions or []
 
     context = "\n\n---\n\n".join(c["text"] for c in chunks)
@@ -66,3 +50,38 @@ Return ONLY the question text. No preamble, no "Here's a question:", no numberin
         "role": role,
         "grounded_in_sources": sources,
     }
+
+
+def generate_session_insights(qas: list[dict], resume_info: dict, role: str) -> str:
+    """
+    Called once, after the interview finishes. Reads the full transcript and
+    produces a short analysis — this is the "basic insights or analysis of the
+    session" the assignment asks for, separate from the raw Q&A transcript itself.
+    """
+    transcript = "\n\n".join(
+        f"Q: {qa['question']}\nA: {qa['answer'] or '(not answered)'}"
+        for qa in qas
+    )
+
+    prompt = f"""You are a technical interviewer summarizing a completed {role} screening interview.
+
+Candidate background summary: {resume_info.get("summary", "N/A")}
+
+Full interview transcript:
+---
+{transcript}
+---
+
+Write a brief analysis (3-5 sentences) covering:
+- Overall impression of the candidate's understanding, calibrated to how they actually answered
+- One or two specific strengths shown in their answers
+- One area that could use deeper follow-up in a next round
+
+Return plain text only. No headers, no markdown formatting, no bullet points.
+"""
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
+    return response.text.strip()

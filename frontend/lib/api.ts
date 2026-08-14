@@ -31,6 +31,7 @@ export interface SessionSummary {
   session_id: number;
   role: string;
   status: string;
+  insights: string | null;
   questions_and_answers: QuestionAnswerPair[];
 }
 

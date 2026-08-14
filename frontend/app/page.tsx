@@ -308,6 +308,24 @@ export default function Home() {
               <p className="text-xs" style={{ fontFamily: "var(--font-mono), monospace", color: MUTED }}>
                 {summary.role.toUpperCase()} · {summary.status.toUpperCase()}
               </p>
+
+              {summary.insights && (
+                <div
+                  className="rounded-xl p-5"
+                  style={{ backgroundColor: "#F0F7F5", border: `1px solid ${TEAL}33` }}
+                >
+                  <p
+                    className="text-xs uppercase tracking-wide mb-2"
+                    style={{ fontFamily: "var(--font-mono), monospace", color: TEAL }}
+                  >
+                    AI Assessment
+                  </p>
+                  <p className="text-sm leading-relaxed" style={{ color: INK }}>
+                    {summary.insights}
+                  </p>
+                </div>
+              )}
+
               {summary.questions_and_answers.map((qa, i) => (
                 <div key={i} className="border-t pt-5" style={{ borderColor: "#E5E7EB" }}>
                   <p className="font-medium mb-2" style={{ color: INK }}>

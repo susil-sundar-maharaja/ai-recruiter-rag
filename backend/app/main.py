@@ -1,16 +1,3 @@
-"""
-Main FastAPI app.
-
-Endpoints:
-  POST /api/upload-resume       -> parse an uploaded resume, return structured info
-  POST /api/start-session       -> create a session, generate & store the first question
-  POST /api/submit-answer       -> save an answer, generate & store the next question (or end)
-  GET  /api/session-summary/{id}-> full transcript + status for a session
-
-Run with:  uvicorn app.main:app --reload
-Docs at:   http://127.0.0.1:8000/docs
-"""
-
 import os
 import shutil
 
@@ -22,16 +9,15 @@ from app.database import Base, engine, get_db
 from app import models, schemas
 from app.services.resume_parser import extract_text_from_resume, extract_resume_info
 from app.services.retrieval import build_queries, retrieve_relevant_chunks
-from app.services.question_generator import generate_question
+from app.services.question_generator import generate_question, generate_session_insights
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Recruiter RAG")
 
-# Allows your Next.js frontend (running on a different port) to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # fine for local dev; tighten before any real deployment
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -97,6 +83,12 @@ def submit_answer(req: schemas.SubmitAnswerRequest, db: Session = Depends(get_db
 
     if answered_count >= MAX_QUESTIONS:
         session.status = "completed"
+
+        qas_for_insights = [
+            {"question": q.question_text, "answer": q.answer_text} for q in session.questions
+        ]
+        session.insights = generate_session_insights(qas_for_insights, session.resume_info, session.role)
+
         db.commit()
         return schemas.NextQuestionResponse(session_id=session.id, interview_complete=True)
 
@@ -133,5 +125,6 @@ def session_summary(session_id: int, db: Session = Depends(get_db)):
         "session_id": session.id,
         "role": session.role,
         "status": session.status,
+        "insights": session.insights,
         "questions_and_answers": qas,
     }
