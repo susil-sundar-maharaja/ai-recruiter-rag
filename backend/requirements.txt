@@ -7,6 +7,6 @@ pytesseract
 pdf2image
 sentence-transformers
 faiss-cpu
-google-genai
+groq
 sqlalchemy
 python-multipart

@@ -1,9 +1,11 @@
 import os
-from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+MODEL = "llama-3.3-70b-versatile"
 
 
 def generate_question(chunks: list[dict], resume_info: dict, role: str, asked_questions: list[str] = None) -> dict:
@@ -39,11 +41,12 @@ Write exactly ONE interview question that:
 Return ONLY the question text. No preamble, no "Here's a question:", no numbering.
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
     )
-    question_text = response.text.strip()
+    question_text = response.choices[0].message.content.strip()
 
     return {
         "question": question_text,
@@ -53,11 +56,6 @@ Return ONLY the question text. No preamble, no "Here's a question:", no numberin
 
 
 def generate_session_insights(qas: list[dict], resume_info: dict, role: str) -> str:
-    """
-    Called once, after the interview finishes. Reads the full transcript and
-    produces a short analysis — this is the "basic insights or analysis of the
-    session" the assignment asks for, separate from the raw Q&A transcript itself.
-    """
     transcript = "\n\n".join(
         f"Q: {qa['question']}\nA: {qa['answer'] or '(not answered)'}"
         for qa in qas
@@ -80,8 +78,9 @@ Write a brief analysis (3-5 sentences) covering:
 Return plain text only. No headers, no markdown formatting, no bullet points.
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.5,
     )
-    return response.text.strip()
+    return response.choices[0].message.content.strip()

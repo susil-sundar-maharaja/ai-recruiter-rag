@@ -5,11 +5,13 @@ import io
 import fitz  # PyMuPDF
 import pytesseract
 from PIL import Image
-from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+MODEL = "llama-3.3-70b-versatile"
 
 
 def extract_text_from_resume(pdf_path: str, min_chars_for_real_text: int = 20) -> str:
@@ -43,13 +45,16 @@ Resume text:
 {resume_text}
 ---
 """
-    response = client.models.generate_content(
-        model="gemini-3.5-flash",
-        contents=prompt
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
     )
-    raw = response.text.strip()
+    raw = response.choices[0].message.content.strip()
+
     if raw.startswith("```"):
         raw = raw.strip("`")
         if raw.startswith("json"):
             raw = raw[4:].strip()
+
     return json.loads(raw)
