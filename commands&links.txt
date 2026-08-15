@@ -1,0 +1,8 @@
+cd /d E:\python\ai-recruiter-rag\backend
+venv\Scripts\activate
+uvicorn app.main:app --reload
+
+cd /d E:\python\ai-recruiter-rag\frontend
+npm run dev
+
+http://localhost:3000

@@ -32,6 +32,7 @@ export interface SessionSummary {
   role: string;
   status: string;
   insights: string | null;
+  insights_sentiment: string | null;
   questions_and_answers: QuestionAnswerPair[];
 }
 

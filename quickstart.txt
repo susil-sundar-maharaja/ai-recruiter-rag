@@ -1,0 +1,26 @@
+AI Recruiter RAG — Quick Setup
+
+1. Clone the repo:
+   git clone https://github.com/susil-sundar-maharaja/ai-recruiter-rag.git
+   cd ai-recruiter-rag
+
+2. Backend setup:
+   cd backend
+   python -m venv venv
+   venv\Scripts\activate          (Windows)
+   pip install -r requirements.txt
+
+   Create a file named .env in this backend folder with:
+   GROQ_API_KEY=your_own_key_here
+   (get a free key at https://console.groq.com)
+
+   Run it:
+   uvicorn app.main:app --reload
+
+3. Frontend setup (in a second terminal):
+   cd frontend
+   npm install
+   npm run dev
+
+4. Open in browser:
+   http://localhost:3000

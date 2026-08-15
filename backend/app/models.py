@@ -13,7 +13,8 @@ class InterviewSession(Base):
     role = Column(String, nullable=False)
     resume_info = Column(JSON, nullable=False)
     status = Column(String, default="in_progress")  # in_progress | completed
-    insights = Column(Text, nullable=True)  # filled in once the interview completes
+    insights = Column(Text, nullable=True)
+    insights_sentiment = Column(String, nullable=True)  # "positive" | "mixed" | "negative"
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     questions = relationship("QuestionAnswer", back_populates="session", order_by="QuestionAnswer.id")

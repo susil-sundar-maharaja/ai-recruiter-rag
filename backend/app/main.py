@@ -87,7 +87,9 @@ def submit_answer(req: schemas.SubmitAnswerRequest, db: Session = Depends(get_db
         qas_for_insights = [
             {"question": q.question_text, "answer": q.answer_text} for q in session.questions
         ]
-        session.insights = generate_session_insights(qas_for_insights, session.resume_info, session.role)
+        insights_result = generate_session_insights(qas_for_insights, session.resume_info, session.role)
+        session.insights = insights_result["analysis"]
+        session.insights_sentiment = insights_result["sentiment"]
 
         db.commit()
         return schemas.NextQuestionResponse(session_id=session.id, interview_complete=True)
@@ -126,5 +128,6 @@ def session_summary(session_id: int, db: Session = Depends(get_db)):
         "role": session.role,
         "status": session.status,
         "insights": session.insights,
+        "insights_sentiment": session.insights_sentiment,
         "questions_and_answers": qas,
     }

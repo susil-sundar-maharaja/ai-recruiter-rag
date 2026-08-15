@@ -17,8 +17,15 @@ type Stage = "entry" | "interview" | "summary";
 
 const TEAL = "#2F6F5E";
 const AMBER = "#E8A33D";
+const RED = "#B3261E";
 const INK = "#1B2430";
 const MUTED = "#6B7280";
+
+function sentimentColors(sentiment: string | null) {
+  if (sentiment === "negative") return { bg: "#FDECEC", border: RED, label: RED };
+  if (sentiment === "mixed") return { bg: "#FEF6E7", border: AMBER, label: "#92620C" };
+  return { bg: "#F0F7F5", border: TEAL, label: TEAL }; // positive or unknown defaults to teal
+}
 
 function StepRail({ stage }: { stage: Stage }) {
   const steps = [
@@ -156,7 +163,7 @@ export default function Home() {
           {error && (
             <p
               className="mb-5 text-sm rounded-lg px-3 py-2"
-              style={{ backgroundColor: "#FDECEC", color: "#B3261E" }}
+              style={{ backgroundColor: "#FDECEC", color: RED }}
             >
               {error}
             </p>
@@ -309,22 +316,26 @@ export default function Home() {
                 {summary.role.toUpperCase()} · {summary.status.toUpperCase()}
               </p>
 
-              {summary.insights && (
-                <div
-                  className="rounded-xl p-5"
-                  style={{ backgroundColor: "#F0F7F5", border: `1px solid ${TEAL}33` }}
-                >
-                  <p
-                    className="text-xs uppercase tracking-wide mb-2"
-                    style={{ fontFamily: "var(--font-mono), monospace", color: TEAL }}
+              {summary.insights && (() => {
+                const colors = sentimentColors(summary.insights_sentiment);
+                return (
+                  <div
+                    className="rounded-xl p-5"
+                    style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}55` }}
                   >
-                    AI Assessment
-                  </p>
-                  <p className="text-sm leading-relaxed" style={{ color: INK }}>
-                    {summary.insights}
-                  </p>
-                </div>
-              )}
+                    <p
+                      className="text-xs uppercase tracking-wide mb-2"
+                      style={{ fontFamily: "var(--font-mono), monospace", color: colors.label }}
+                    >
+                      AI Assessment
+                      {summary.insights_sentiment ? ` · ${summary.insights_sentiment.toUpperCase()}` : ""}
+                    </p>
+                    <p className="text-sm leading-relaxed" style={{ color: INK }}>
+                      {summary.insights}
+                    </p>
+                  </div>
+                );
+              })()}
 
               {summary.questions_and_answers.map((qa, i) => (
                 <div key={i} className="border-t pt-5" style={{ borderColor: "#E5E7EB" }}>

@@ -1,4 +1,5 @@
 import os
+import json
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -55,7 +56,12 @@ Return ONLY the question text. No preamble, no "Here's a question:", no numberin
     }
 
 
-def generate_session_insights(qas: list[dict], resume_info: dict, role: str) -> str:
+def generate_session_insights(qas: list[dict], resume_info: dict, role: str) -> dict:
+    """
+    Called once, after the interview finishes. Returns both a written analysis
+    AND a sentiment classification, so the frontend can style the result
+    (e.g. green for a positive verdict, red for a negative one).
+    """
     transcript = "\n\n".join(
         f"Q: {qa['question']}\nA: {qa['answer'] or '(not answered)'}"
         for qa in qas
@@ -70,17 +76,31 @@ Full interview transcript:
 {transcript}
 ---
 
-Write a brief analysis (3-5 sentences) covering:
-- Overall impression of the candidate's understanding, calibrated to how they actually answered
-- One or two specific strengths shown in their answers
-- One area that could use deeper follow-up in a next round
+Return ONLY valid JSON — no markdown, no code fences, no explanation — with exactly this structure:
 
-Return plain text only. No headers, no markdown formatting, no bullet points.
+{{
+  "sentiment": "positive" | "mixed" | "negative",
+  "analysis": "3-5 sentence analysis: overall impression calibrated to how they actually answered, one or two specific strengths shown, and one area that could use deeper follow-up"
+}}
+
+Guidance for "sentiment":
+- "positive": candidate demonstrated solid understanding across most answers
+- "negative": candidate showed significant gaps, or answers were mostly incorrect, vague, or missing
+- "mixed": a genuine blend of strong and weak answers
+
+Be honest and calibrated — don't default to "positive" just to be polite.
 """
 
     response = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
+        temperature=0.3,
     )
-    return response.choices[0].message.content.strip()
+    raw = response.choices[0].message.content.strip()
+
+    if raw.startswith("```"):
+        raw = raw.strip("`")
+        if raw.startswith("json"):
+            raw = raw[4:].strip()
+
+    return json.loads(raw)
