@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-model = "qwen/qwen3.6-27b"
+MODEL = "qwen/qwen3.6-27b"
 
 
 def generate_question(chunks: list[dict], resume_info: dict, role: str, asked_questions: list[str] = None) -> dict:

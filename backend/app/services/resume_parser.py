@@ -11,8 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-model = "qwen/qwen3.6-27b"
-
+MODEL = "qwen/qwen3.6-27b"
 
 def extract_text_from_resume(pdf_path: str, min_chars_for_real_text: int = 20) -> str:
     doc = fitz.open(pdf_path)
