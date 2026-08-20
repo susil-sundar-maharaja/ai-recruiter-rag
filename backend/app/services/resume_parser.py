@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-MODEL = "llama-3.3-70b-versatile"
+model = "qwen/qwen3.6-27b"
 
 
 def extract_text_from_resume(pdf_path: str, min_chars_for_real_text: int = 20) -> str:
@@ -49,6 +49,7 @@ Resume text:
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
+        reasoning_effort="none"
     )
     raw = response.choices[0].message.content.strip()
 
